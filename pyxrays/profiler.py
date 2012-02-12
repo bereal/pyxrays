@@ -1,5 +1,5 @@
-#from pyxrays.cHandler import EventHandler
-from cHandler import create_profiler
+from pyxrays.cHandler import EventHandler
+from pyxrays.cHandler import create_profiler
 
 def runctx(statement, globs, locs, filename):
     """Run statement under profiler, supplying your own globals and locals,

@@ -22,7 +22,7 @@ cdef class EventHandler:
     def __call__(self, frame, event, arg):
         if event == "call":
             code = frame.f_code
-            fprintf(<FILE *>self._file, "%s\t1\t%s\t%s\t%i\n",
+            fprintf(<FILE *>self._file, "%i\t1\t%s\t%s\t%i\n",
                      <int>self._retcount,
                      <const_char_ptr>code.co_name,
                      <const_char_ptr>code.co_filename,
@@ -58,7 +58,6 @@ class DispatchHandler(object):
         try:
             exec cmd in globs, locs
         finally:
-            print "Exiting"
             sys.setprofile(None)
 
 

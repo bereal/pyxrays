@@ -7,6 +7,7 @@ setup(
     name = "Pyxrays",
     packages = ["pyxrays"],
     cmdclass = {'build_ext': build_ext},
+    scripts = ['scripts/pyxrays'],
     ext_modules = [Extension('pyxrays.cHandler',
                              ['pyxrays/cHandler.pyx'],
                              extra_compile_args = ['-O3', '-Wall'])]

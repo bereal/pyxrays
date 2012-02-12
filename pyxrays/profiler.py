@@ -1,4 +1,3 @@
-from pyxrays.cHandler import EventHandler
 from pyxrays.cHandler import create_profiler
 
 def runctx(statement, globs, locs, filename):

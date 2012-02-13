@@ -13,23 +13,23 @@ cdef extern from *:
          
 cdef class EventHandler:
     cdef FILE * _file
-    cdef int _retcount
+    cdef int _stack_depth
     
     def __init__(self, output):
         self._file = fopen(<char *>output, "w")
-        self._retcount = 0
+        self._stack_depth = 0
     
     def __call__(self, frame, event, arg):
         if event == "call":
             code = frame.f_code
             fprintf(<FILE *>self._file, "%i\t1\t%s\t%s\t%i\n",
-                     <int>self._retcount,
+                     <int>self._stack_depth,
                      <const_char_ptr>code.co_name,
                      <const_char_ptr>code.co_filename,
                      <int>code.co_firstlineno)
-            self._retcount = 0
+            self._stack_depth += 1
         elif event == "return":
-            self._retcount += 1
+            self._stack_depth -= 1
 
         return self
             

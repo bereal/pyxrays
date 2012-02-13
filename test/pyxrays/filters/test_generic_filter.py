@@ -3,9 +3,11 @@ from mock import Mock
 
 from collections import namedtuple
 
-from pyxrays.filters.generic import fold, prune
+from pyxrays.filters.generic import fold, prune, inline
 
-E = namedtuple('Entry', 'depth value')
+class E(namedtuple('Entry', 'depth value')):
+    def with_depth(self, new_depth):
+        return E(new_depth, self.value)
 
 
 class FoldTest(unittest.TestCase):
@@ -64,7 +66,7 @@ class PruneTest(unittest.TestCase):
         trace = [E(*t) for t in trace]
         
         def filt(e):
-            return 'ok' in e.value
+            return 'ok' not in e.value
         
         result = list(prune(filt, trace))
         expected = [t for t in trace if 'drop' not in t.value]
@@ -81,22 +83,74 @@ class PruneTest(unittest.TestCase):
 
     def test_filter_drop_recursion(self):
         self._test_filter(
-            (1, 'drop'),
-            (2, 'ok_but_must_drop_automatically'),)
+            (0, 'drop'),
+            (1, 'ok_but_must_drop_automatically'),)
             
 
     def test_filter_keep_nested(self):
         self._test_filter(
-            (1, 'ok1'),
-            (2, 'ok2'))
+            (0, 'ok1'),
+            (1, 'ok2'))
 
         
     def test_filter_drop_in_middle(self):
         self._test_filter(
-            (1, 'ok1'),
-            (2, 'ok2'),
-            (1, 'drop'),
-            (2, 'ok_but_drop'),
-            (1, 'ok3'),
-            (2, 'ok4'))
+            (0, 'ok1'),
+            (1, 'ok2'),
+            (0, 'drop'),
+            (1, 'ok_but_drop'),
+            (0, 'ok3'),
+            (1, 'ok4'))
 
+
+#class NormalizeTest(unittest.TestCase):
+#    def _test_normalize(self, *data):
+#        trace = [E(depth, val) for (depth, val, _) in data]
+#        expected = 
+
+
+class InlineTest(unittest.TestCase):
+
+    def _test_inline(self, *data):
+        trace = [E(*t[:-1]) for t in data]
+        expected = [E(depth, val) for (_, val, depth) in data \
+                        if 'inline' not in val]
+
+        def f(entry):
+            return 'inline' in entry.value
+
+        result = inline(f, trace)
+        self.assertEquals(expected, list(result))
+
+        
+    def test_inline_single1(self):
+        self._test_inline(
+            (1, 'inline', 0))
+
+
+    def test_inline_single2(self):
+        self._test_inline(
+            (1, 'dont_touch', 1))
+
+
+    def test_inline(self):
+        self._test_inline(
+            (1, 'inline', 0),
+            (2, 'shift', 1))
+
+
+    def test_nested_inline(self):
+        self._test_inline(
+            (1, 'inline', 0),
+            (2, 'shift1', 1),
+            (2, 'inline-too', 0),
+            (3, 'shift2', 1),
+            (1, 'keep-as-is', 1))
+
+
+    def test_inline_in_middle(self):
+        self._test_inline(
+            (0, 'keep', 0),
+            (0, 'inline', 0),
+            (1, 'shift0', 0),
+            (2, 'keep2', 2)) # TODO normalization

@@ -1,9 +1,8 @@
 import unittest
-from mock import Mock
 
 from collections import namedtuple
 
-from pyxrays.filters.generic import fold, prune, inline
+from pyxrays.filters.generic import fold, prune, inline, normalize
 
 class E(namedtuple('Entry', 'depth value')):
     def with_depth(self, new_depth):
@@ -103,10 +102,35 @@ class PruneTest(unittest.TestCase):
             (1, 'ok4'))
 
 
-#class NormalizeTest(unittest.TestCase):
-#    def _test_normalize(self, *data):
-#        trace = [E(depth, val) for (depth, val, _) in data]
-#        expected = 
+class NormalizeTest(unittest.TestCase):
+    def _test(self, *data):
+        trace = [E(depth, 'any') for (depth, _) in data]
+        expected = [E(depth, 'any') for (_, depth) in data]
+
+        result = normalize(trace)
+        self.assertEquals(list(result), expected)
+
+    def test_single(self):
+        self._test((1,0))
+
+    def test_one_offset(self):
+        self._test((1,0), (2,1))
+
+    def test_nested(self):
+        self._test(
+            (1, 0),
+            (5, 1),
+            (7, 2))
+
+    def test_normal_siblings(self):
+        self._test((1, 0), (2, 1), (2, 1))
+
+    def test_non_normal_siblings(self):
+        self._test((1, 0), (4, 1), (3, 1))
+
+    def test_in_middle(self):
+        self._test((1,0), (1,0), (3, 1), (1,0))
+
 
 
 class InlineTest(unittest.TestCase):

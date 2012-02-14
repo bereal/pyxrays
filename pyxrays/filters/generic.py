@@ -28,7 +28,18 @@ def prune(filt, seq):
         else:
             yield entry
 
+def normalize(seq):
+    stack = []
+    for entry in seq:
+        depth = entry.depth
+        while stack and stack[-1][0] >= depth:
+            stack.pop()
 
+        new_depth = stack[-1][1] + 1 if stack else 0
+        yield entry if depth == new_depth else entry.with_depth(new_depth)
+        stack.append((depth, new_depth))
+        
+            
             
 def inline(filt, seq):
     # TODO: normalization
